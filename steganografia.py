@@ -13,6 +13,7 @@ DIR = 2
 
 def timeDisplay(seconds: int) -> str:
     """Converts seconds to a string in the format MM minutes SS seconds"""
+    seconds = round(seconds)
     minutes, seconds = divmod(seconds, 60)
     if minutes:
         return f"{minutes:02d} minutes {seconds:02d} seconds"
