@@ -11,6 +11,14 @@ NO_ZIP = 0
 FILE = 1
 DIR = 2
 
+def timeDisplay(seconds: int) -> str:
+    """Converts seconds to a string in the format MM minutes SS seconds"""
+    minutes, seconds = divmod(seconds, 60)
+    if minutes:
+        return f"{minutes:02d} minutes {seconds:02d} seconds"
+    else:
+        return f"{seconds:02d} seconds"
+
 def arcobaleno(str: str) -> None:
     colors = ["red","yellow","green","cyan","blue","magenta"]
     for i in range(len(str)):
@@ -544,7 +552,7 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
                 progress = (i + 1) / total_bytes
                 elapsed_time = time.time() - start_time
                 print(f"Elaboration {i + 1} of {total_bytes} bytes ({format((progress) * 100, '.2f')}%)")
-                print(f"Remaining time: {format(elapsed_time *(1 - progress) / progress, '.2f')} seconds")
+                print(f"Remaining time: {timeDisplay(elapsed_time *(1 - progress) / progress)}")
     f.close()
     while len(rsv) > 0:
         tmp = rsv[:n]
@@ -557,7 +565,6 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
     arcobaleno("HIDING FILE")
     print("...")
     print(f"Elaboration {total_bytes} of {total_bytes} bytes (100.0%)")
-    print("Remaining time: 0.00 seconds")
     print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n} and div={div}: {format(((total_bytes * 8) / ((img.width * img.height) * ch * n)) * 100, '.2f')}%")
     if zipMode != NO_ZIP:
         # delete tmp.zip
@@ -619,7 +626,7 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
                 progress = i / (size*8//n)
                 elapsed_time = time.time() - start_time
                 print(f"Elaboration progress: {format(progress * 100, '.2f')}%")
-                print(f"Remaining time: {format(elapsed_time * (1 - progress) / progress, '.2f')} seconds")                
+                print(f"Remaining time: {timeDisplay(elapsed_time *(1 - progress) / progress)}")               
         if len(bits):
             bits = string_to_bytes(bits)
             file.write(bits)
@@ -628,7 +635,6 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
         arcobaleno("GETTING FILE")
         print("...")
         print("Elaboration progress: 100.0%")
-        print("Remaining time: 0.00 seconds")
         if zipMode == NO_ZIP:
             print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[1;33m{new_file_path}\33[0m")
         elif zipMode == FILE:
