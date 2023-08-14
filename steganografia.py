@@ -558,7 +558,7 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
     print("...")
     print(f"Elaboration {total_bytes} of {total_bytes} bytes (100.0%)")
     print("Remaining time: 0.00 seconds")
-    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n}: {format(((total_bytes * 8) / ((img.width * img.height) * ch * n)) * 100, '.2f')}%")
+    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n} and div={div}: {format(((total_bytes * 8) / ((img.width * img.height) * ch * n)) * 100, '.2f')}%")
     if zipMode != NO_ZIP:
         # delete tmp.zip
         remove('tmp.zip')
