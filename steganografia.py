@@ -235,7 +235,7 @@ def oldfindDiv(dim: int, file: str, n: int) -> int:
 
 def findDiv(dim: int, file: str, n: int) -> float:
     image_dim = dim * n
-    div = ((image_dim - 1) / (getsize(file) * 8))
+    div = ((image_dim - n) / (getsize(file) * 8))
     return div
 
 def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, int): # with arr -> faster and better
