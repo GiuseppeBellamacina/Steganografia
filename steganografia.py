@@ -1116,6 +1116,30 @@ def sizeInput() -> int:
         size = input("Dimensione --> ")
     return int(size)
 
+def bytes_to_kb_or_mb(bytes_value: int) -> str:
+    kb = bytes_value / 1024
+    if kb < 1024:  # meno di 1 MB
+        return f"{kb:.2f} KB"
+    mb = kb / 1024
+    return f"{mb:.2f} MB"
+
+def contains(img: Image, mode: int) -> None:
+    system("cls")
+    print("L'immagine selezionata puo' contenere:")
+    if img.mode == "RGB":
+            ch = 3
+    elif img.mode == "RGBA":
+            ch = 4
+    pixels_ch = img.width * img.height * ch
+    if mode == 2 or mode == 4:
+        for i in range(1, 9):
+            c = round((pixels_ch * i) / 8)
+            print(f"Per \33[32mn\33[0m={i}: {bytes_to_kb_or_mb(c)}")
+    else:
+        for i in range(1, 9):
+            c = round((pixels_ch * i) / 8)
+            print(f"Per \33[32mn\33[0m={i}: {c} pixels da {ch} canali")       
+
 # AREA DI BACKUP
 n_backup = 0
 div_backup = 0
@@ -1163,6 +1187,7 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img = imgInput()
+            contains(img, 2)
             file = fileinput()
             new_img = imgOutput()
             if parametriFacoltativi():
@@ -1195,6 +1220,7 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img1 = imgInput()
+            contains(img1, 3)
             img2 = imgInput2()
             new_img = imgOutput()
             if parametriFacoltativi():
@@ -1232,6 +1258,7 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img = imgInput()
+            contains(img, 4)
             file = fileinput()
             new_img = imgOutput()
             zipMode = zipModeInput(file)
