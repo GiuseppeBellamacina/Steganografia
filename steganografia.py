@@ -630,7 +630,7 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
             file.write(bits)
         file.close()
         system("cls")
-        arcobaleno("OCCULTAMENTO FILE")
+        arcobaleno("RICERCA FILE")
         print("...")
         print("Elaborazione in corso: 100.0%")
         if zipMode == NO_ZIP:
@@ -640,12 +640,15 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
             # unzip file
             try:
                 with zipfile.ZipFile(new_file_path, 'r') as zf:
+                    old_path = zf.namelist()[0]
+                    file_data = zf.read(old_path)
+                    zf.close()
+                remove(new_file_path)
+                with zipfile.ZipFile(new_file_path, 'w') as zf:
+                    zf.writestr(res, file_data)
+                    zf.close()
+                with zipfile.ZipFile(new_file_path, 'r') as zf:
                     zf.extractall()
-                    extracted = zf.namelist()[0]
-                    old_path = join(getcwd(), extracted)
-                    new_path = join(getcwd(), res)
-                    rename(old_path, new_path)
-                    # delete tmp.zip
                     zf.close()
                     remove(new_file_path)
                     print(f"\33[1;32mFILE TROVATO\33[0m\nFile salvato come \33[33m{res}\33[0m")
@@ -1127,9 +1130,8 @@ zipMode_backup = NO_ZIP
 mode_backup = 0
        
 def mode(mod: int) -> bool:
-    global n_backup, div_backup, lsb_backup, msb_backup, size_backup
-    global w_backup, h_backup, img_with_data_backup, extracted_backup
-    global zipMode_backup, mode_backup
+    global n_backup, div_backup, lsb_backup, msb_backup, size_backup, zipMode_backup
+    global w_backup, h_backup, img_with_data_backup, extracted_backup, mode_backup
     system("cls")
     
     # hideMessage()
@@ -1240,7 +1242,7 @@ def mode(mod: int) -> bool:
                 n = 0
                 div = 0
             zipMode_backup = zipMode
-            img_with_data_backup, n_backup, div_backup, size_backup = hideBinFile(img, file, new_img, n, div, zipMode)
+            img_with_data_backup, n_backup, div_backup, size_backup = hideBinFile(img, file, new_img, zipMode, n, div)
             mode_backup = 4
             system("pause")
             return True
