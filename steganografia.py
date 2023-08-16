@@ -1191,7 +1191,7 @@ def mode(mod: int) -> bool:
             img = imgInput()
             mx = contains(img, 2)
             file = fileinput()
-            while mx > getsize(file):
+            while mx < getsize(file):
                 system("cls")
                 print("\33[1;31mERRORE\33[0m: il file e' troppo grande per essere nascosto")
                 system("pause")
@@ -1233,7 +1233,7 @@ def mode(mod: int) -> bool:
                 ch = 3
             elif img2.mode == "RGBA":
                 ch = 4
-            while mx > img2.width * img2.height * ch:
+            while mx < img2.width * img2.height * ch:
                 system("cls")
                 print("\33[1;31mERRORE\33[0m: l'immagine e' troppo grande per essere nascosta")
                 system("pause")
@@ -1280,9 +1280,9 @@ def mode(mod: int) -> bool:
             img = imgInput()
             mx = contains(img, 4)
             file = fileinput()
-            while mx > getsize(file):
+            while mx < (getsize(file) if isfile(file) else getDirSize(file)):
                 system("cls")
-                print("\33[1;31mERRORE\33[0m: il file e' troppo grande per essere nascosto")
+                print("\33[1;31mERRORE\33[0m: i dati sono troppi per essere nascosti")
                 system("pause")
                 file = fileinput()
             new_img = imgOutput()
