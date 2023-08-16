@@ -1,7 +1,7 @@
 # Author: Giuseppe Bellamacina
 
-from os import system, remove, walk, getcwd, rename
-from os.path import getsize, splitext, join, relpath, isfile, isdir
+from os import system, remove, walk
+from os.path import getsize, join, relpath, isfile, isdir
 from pyfiglet import figlet_format
 import colorama
 from random import randint
@@ -1294,7 +1294,7 @@ def start() -> None:
     
 def ascii_art() -> None:
     colors = ["red","yellow","green","cyan","blue","magenta"]
-    str = "STEGANOGRAFIA\nversione 2.0"
+    str = "STEGANOGRAFIA\nversione 2.077"
     print(colored(figlet_format(str, font="slant"), colors[randint(0,5)], 'on_black', ['bold', 'blink']), end='')
     print("by ", end='')
     arcobaleno("Giuseppe Bellamacina")
