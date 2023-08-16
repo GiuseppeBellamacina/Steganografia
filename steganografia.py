@@ -1300,9 +1300,9 @@ def ascii_art() -> None:
     system("pause")
 
 def main():
+    system("cls")
     colorama.init()
     ascii_art()
-    system("cls")
     start()
 
 main()
