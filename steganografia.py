@@ -942,7 +942,7 @@ def nInput(get=1) -> int:
     if not get: print("NOTA: 0 per la modalita' automatica")
     n = input("\33[32mn\33[0m --> ")
     if not get:
-        while n == "" or not str(n).isdigit() or n < 0 or n > 8:
+        while n == "" or not str(n).isdigit() or int(n) < 0 or int(n) > 8:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
@@ -950,14 +950,14 @@ def nInput(get=1) -> int:
             print("NOTA: 0 per la modalita' automatica")
             n = input("\33[32mn\33[0m --> ")
     else:
-        while n == "" or not str(n).isdigit() or n < 1 or n > 8:
+        while n == "" or not str(n).isdigit() or int(n) < 1 or int(n) > 8:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
             print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
             print("NOTA: 0 per la modalita' automatica")
             n = input("\33[32mn\33[0m --> ")
-    return n
+    return int(n)
 
 def divInput(get=1) -> int:
     system("cls")
@@ -965,7 +965,7 @@ def divInput(get=1) -> int:
     if not get: print("NOTA: 0 per la modalita' automatica")
     div = input("\33[35mdiv\33[0m --> ")
     if not get:
-        while div == "" or not str(div).isdigit() or div < 0:
+        while div == "" or not str(div).isdigit() or int(div) < 0:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
@@ -973,13 +973,13 @@ def divInput(get=1) -> int:
             print("NOTA: 0 per la modalita' automatica")
             div = input("\33[35mdiv\33[0m --> ")
     else:
-        while div == "" or not str(div).isdigit() or div < 1:
+        while div == "" or not str(div).isdigit() or int(div) < 1:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
             print("Inserisci il valore di \33[35mdiv\33[0m")
             div = input("\33[35mdiv\33[0m --> ")
-    return div
+    return int(div)
 
 def LMInput(get=1) -> (int, int):
     system("cls") # msb
@@ -987,7 +987,7 @@ def LMInput(get=1) -> (int, int):
     if not get: print("NOTA: 0 per la modalita' automatica")
     msb = input("\33[34mmsb\33[0m --> ")
     if not get:
-        while msb == "" or not str(msb).isdigit() or msb < 0 or msb > 8:
+        while msb == "" or not str(msb).isdigit() or int(msb) < 0 or int(msb) > 8:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
@@ -995,7 +995,7 @@ def LMInput(get=1) -> (int, int):
             print("NOTA: 0 per la modalita' automatica")
             msb = input("\33[34mmsb\33[0m --> ")
     else:
-        while msb == "" or not str(msb).isdigit() or msb < 1 or msb > 8:
+        while msb == "" or not str(msb).isdigit() or int(msb) < 1 or int(msb) > 8:
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
@@ -1007,7 +1007,7 @@ def LMInput(get=1) -> (int, int):
     print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
     lsb = input("\33[36mlsb\33[0m --> ")
     if not get:
-        while lsb == "" or not str(lsb).isdigit() or lsb < 0 or lsb > 8 or lsb > msb:
+        while lsb == "" or not str(lsb).isdigit() or int(lsb) < 0 or int(lsb) > 8 or int(lsb) > int(msb):
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
@@ -1016,20 +1016,20 @@ def LMInput(get=1) -> (int, int):
             print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
             lsb = input("\33[36mlsb\33[0m --> ")
     else:
-        while lsb == "" or not str(lsb).isdigit() or lsb < 1 or lsb > 8 or lsb > msb:
+        while lsb == "" or not str(lsb).isdigit() or int(lsb) < 1 or int(lsb) > 8 or int(lsb) > int(msb):
             print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
             system("pause")
             system("cls")
             print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
             print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
             lsb = input("\33[36mlsb\33[0m --> ")
-    return (lsb, msb)
+    return (int(lsb), int(msb))
 
 def WHInput() -> (int, int):
     system("cls")
     print("Inserisci la larghezza dell'immagine da recuperare")
     w = input("Larghezza --> ")
-    while w == "" or not str(w).isdigit() or w < 1:
+    while w == "" or not str(w).isdigit() or int(w) < 1:
         print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
         system("pause")
         system("cls")
@@ -1038,13 +1038,13 @@ def WHInput() -> (int, int):
     system("cls")
     print("Inserisci l'altezza dell'immagine da recuperare")
     h = input("Altezza --> ")
-    while h == "" or not str(h).isdigit() or h < 1:
+    while h == "" or not str(h).isdigit() or int(h) < 1:
         print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
         system("pause")
         system("cls")
         print("Inserisci l'altezza dell'immagine da recuperare")
         h = input("Altezza --> ")
-    return (w, h)
+    return (int(w), int(h))
 
 def zipModeInput(path: str) -> int:
     if isdir(path):
@@ -1105,13 +1105,13 @@ def sizeInput() -> int:
     system("cls")
     print("Inserisci la dimensione del file da nascondere")
     size = input("Dimensione --> ")
-    while size == "" or not str(size).isdigit() or size < 1:
+    while size == "" or not str(size).isdigit() or int(size) < 1:
         print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
         system("pause")
         system("cls")
         print("Inserisci la dimensione del file da nascondere")
         size = input("Dimensione --> ")
-    return size
+    return int(size)
 
 # AREA DI BACKUP
 n_backup = 0
