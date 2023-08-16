@@ -1174,7 +1174,7 @@ def mode(mod: int) -> bool:
             system("pause")
             return True
         elif sub == 2:
-            if parametriBackup():
+            if parametriBackup(2):
                 img = img_with_data_backup
                 n = n_backup
                 div = div_backup
@@ -1207,7 +1207,7 @@ def mode(mod: int) -> bool:
             system("pause")
             return True
         elif sub == 2:
-            if parametriBackup():
+            if parametriBackup(3):
                 img = img_with_data_backup
                 lsb = lsb_backup
                 msb = msb_backup
