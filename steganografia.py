@@ -1,5 +1,10 @@
+# Author: Giuseppe Bellamacina
+
 from os import system, remove, walk, getcwd, rename
-from os.path import getsize, splitext, join, relpath
+from os.path import getsize, splitext, join, relpath, isfile, isdir
+from pyfiglet import figlet_format
+import colorama
+from random import randint
 from PIL import Image
 import numpy as np
 import zipfile
@@ -12,37 +17,38 @@ FILE = 1
 DIR = 2
 
 def timeDisplay(seconds: int) -> str:
-    """Converts seconds to a string in the format MM minutes SS seconds"""
+    """Converte i secondi in minuti e secondi"""
     seconds = round(seconds)
     minutes, seconds = divmod(seconds, 60)
     if minutes:
-        return f"{minutes:02d} minutes {seconds:02d} seconds"
+        return f"{minutes:02d} minuti {seconds:02d} secondi"
     else:
-        return f"{seconds:02d} seconds"
+        return f"{seconds:02d} secondi"
 
 def arcobaleno(str: str) -> None:
+    """Arcobalenizza le sringhe"""
     colors = ["red","yellow","green","cyan","blue","magenta"]
     for i in range(len(str)):
         print(colored(str[i], colors[i%len(colors)], 'on_black', ['bold', 'blink']), end='')
 
 def binaryConvert(text: str) -> str:
-    """Converts a string of text to binary (char by char)"""
+    """Converte una stringa di testo in una stringa binaria (carattere per carattere)"""
     return ''.join(format(ord(char), '08b') for char in text)
 
 def binaryConvertBack(text: str) -> str:
-    """Converts a string of binary to text"""
+    """Converte una stringa binaria in una stringa di testo (8-bit)"""
     return ''.join(chr(int(text[i*8:i*8+8],2)) for i in range(len(text)//8))
 
 def setLastBit(value: int, bit: str) -> int:
-    """Sets the last bit of a value"""
-    value = format(value, '08b') # convert int to binary string
-    value[-1] = bit # change last bit
-    value = int(value, 2) # convert binary string to int
-    value = min(255, max(0, value)) # check if value is in range
+    """Setta l'ultimo bit di un numero"""
+    value = format(value, '08b') # converte un intero in una stringa di 8 caratteri (byte)
+    value = value[:7] + bit # cambia l'ultimo bit
+    value = int(value, 2) # riconverte la stringa in un numero
+    value = min(255, max(0, value)) # controlla se il numero è fuori range
     return value
 
 def setLastNBits(value: int, bits: str, n: int) -> int:
-    """Sets the last n bits of a value"""
+    """Setta gli ultimi n bits di un numero"""
     value = format(value, '08b')
     if len(bits) < n:
         n = len(bits)
@@ -52,6 +58,7 @@ def setLastNBits(value: int, bits: str, n: int) -> int:
     return value
 
 def setComponetOfColor(mat: np.array, i: int, j: int, color: int, channel: int) -> np.array:
+    """Cambia tutte e tre le componenti di colore RGB di un pixel"""
     if channel == 0:
         mat[i,j] = (color, mat[i,j][1], mat[i,j][2])
     elif channel == 1:
@@ -62,18 +69,18 @@ def setComponetOfColor(mat: np.array, i: int, j: int, color: int, channel: int) 
     
 
 def hideMessage(img: Image, msg: str, new_img: str) -> Image:
-    """Hides a message in a image"""
+    """Nasconde una stringa in una foto"""
     system('cls')
-    # check if image is big enough
+    # controlla se l'immagine è abbastanza grande
     if (img.width * img.height) * 3 < len(msg) * 8:
         f = img.filename.split("\\")[-1]
-        print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide message")
+        print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il messaggio")
         exit()
-    # convert image to RGB
+    # converte in RGB
     if img.mode != "RGB":
         img = img.convert("RGB")
-    # start hiding message
-    arcobaleno("HIDING MESSAGE")
+    # inizia a nascondere
+    arcobaleno("OCCULTAMENTO MESSAGGIO")
     print("...")
     img_copy = img.copy()
     mat = img_copy.load()
@@ -85,23 +92,22 @@ def hideMessage(img: Image, msg: str, new_img: str) -> Image:
             for z in range(3):
                 if msg != []:
                     bit = msg.pop(0)
-                    color = mat[i,j][z] # get color
-                    color = setLastBit(color, bit) # change last bit
-                    mat = setComponetOfColor(mat, i, j, color, z) # set color
+                    color = mat[i,j][z] # ottieni il colore
+                    color = setLastBit(color, bit) # cambia l'ultimo bit
+                    mat = setComponetOfColor(mat, i, j, color, z) # setta il colore
                 else:
                     break
-    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used: {format(((len(msg) / ((img.width * img.height) * 3)) * 100), '.2f')}%")
-    print(f"Image saved as \33[1;33m{new_img}\33[0m")
+    print(f"\33[1;32mTERMINATO\33[0m\nPercentuale di pixel usati: {format(((len(msg) / ((img.width * img.height) * 3)) * 100), '.2f')}%")
+    print(f"Immagine salvata come \33[33m{new_img}\33[0m")
     img_copy.save(new_img)
     return img_copy
 
 def getMessage(img: Image) -> str:
-    """Gets a message from a image"""
+    """Ottieni un messaggio nascosto"""
     system('cls')
-    # convert image to RGB
     if img.mode != "RGB":
         img = img.convert("RGB")
-    # start getting message
+    # inizia la procedura
     mat = img.load()
     msg, stop = [], []
     for i in range(img.width):
@@ -123,12 +129,12 @@ def getMessage(img: Image) -> str:
     msg = binaryConvertBack(msg)
     return msg
 
-def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int):
-    """Hides a file in a image"""
+def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int): # deprecato
+    """Nasconde un file a caratteri"""
     system('cls')
-    # check if n is in range
+    # controlla se n è valido
     if n < 0 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8 or 0 for auto")
+        print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8 o 0 per la modalita' automatica")
         exit()
     # auto n
     if n == 0:
@@ -136,36 +142,35 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
             n += 1
             if n > 8:
                 f = img.filename.split("\\")[-1]
-                print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+                print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
                 exit()
-    # check if image is big enough
+    # controllo dimensioni
     if (img.width * img.height) * 3 * n < getsize(file) * 8:
         f = img.filename.split("\\")[-1]
-        print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+        print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
         exit()
-    # convert image to RGB
     if img.mode != "RGB":
         img = img.convert("RGB")
-    # check if div value is valid
+    # controlla se div è valido
     if div == 0:
         div = ((img.width * img.height) * 3 * n) // (getsize(file) * 8)
     else:
         if img.width * img.height * 3 * n < div * getsize(file) * 8:
-            print("\33[1;31mERROR\33[0m: div value too big")
+            print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
             exit()
-    # start hiding file
-    arcobaleno("HIDING FILE")
+    # avvio procedura
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
     img_copy = img.copy()
-    mat = img_copy.load() # so that mat_or doesn't change
+    mat = img_copy.load() # lavoro sulla copia
     x, y, z = 0, 0, 0
     start_time = time.time()
-    # read file by line
+    # lettura per riga
     with open(file, 'r', encoding='utf-8') as f:
         total_lines = sum(1 for line in f)
-        f.seek(0)  # go back to the start of the file
+        f.seek(0)
         rsv = ""
-        for i, line in enumerate(f): # enumerate() returns a tuple with the index and the value
+        for i, line in enumerate(f): # enumerate() ritorna una tupla con l'indice ed il valore
             line = binaryConvert(line) 
             line = rsv + line
             rsv = ""
@@ -188,23 +193,23 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
                 color = mat[x,y][z]
                 color = setLastNBits(color, bit, n)
                 mat = setComponetOfColor(mat, x, y, color, z)
-                # go to next pixel/component
+                # vai avanti
                 for w in range(div):
                     z = (z + 1) % 3
                     if z == 0:
                         y = (y + 1) % img.height
                         if y == 0:
                             x = (x + 1) % img.width     
-            if (i + 1) % 1000 == 0:  # Change this number to control how often the progress is printed
+            if (i + 1) % 3000 == 0:
                 system('cls')
-                arcobaleno("HIDING FILE")
+                arcobaleno("OCCULTAMENTO FILE")
                 print("...")
                 progress = (i + 1) / total_lines
                 elapsed_time = time.time() - start_time
-                print(f"Elaboration {i + 1} of {total_lines} lines ({format((progress) * 100, '.2f')}%)")
-                print(f"Remaining time: {format(elapsed_time *(1 - progress) / progress, '.2f')} seconds")
+                print(f"Elaborate {i + 1} righe su {total_lines} ({format((progress) * 100, '.2f')}%)")
+                print(f"Tempo rimanente: {timeDisplay(elapsed_time *(1 - progress) / progress)}")
     rsv = list(rsv)
-    # if there are still bits left, hide them
+    # se ci sono altri bit
     while rsv != []:
         bit = ""
         for k in range(n):
@@ -215,7 +220,6 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
         color = mat[x,y][z]
         color = setLastNBits(color, bit, n)
         mat = setComponetOfColor(mat, x, y, color, z)
-        # go to next pixel/component
         for w in range(div):
             z = (z + 1) % 3
             if z == 0:
@@ -223,18 +227,17 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
                 if y == 0:
                     x = (x + 1) % img.width
     f.close()
-    # print percentage of pixels used
     system('cls')
-    arcobaleno("HIDING FILE")
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
-    print(f"Elaboration {total_lines} of {total_lines} lines (100.0%)")
-    print("Remaining time: 0.00 seconds")
-    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n}: {format(((getsize(file) * 8) / ((img.width * img.height) * 3 * n)) * 100, '.2f')}%")
+    print(f"Elaborate {total_lines} righe su {total_lines} (100.0%)")
+    print("Tempo rimanente: 0 secondi")
+    print(f"\33[1;32mTERMINATO\33[0m\nPercentuale di pixel usati con \33[32mn\33[0m={n} e \33[35mdiv\33[0m={div}: {format(((getsize(file) * 8) / ((img.width * img.height) * 3 * n)) * 100, '.2f')}%")
     img_copy.save(new_img)
-    print(f"Image saved as \33[1;33m{new_img}\33[0m")
+    print(f"Immagine salvata come \33[33m{new_img}\33[0m")
     return (img_copy, div)
 
-def oldfindDiv(dim: int, file: str, n: int) -> int:
+def oldfindDiv(dim: int, file: str, n: int) -> int: # da evitare
     image_dim = dim * n
     div = (image_dim // (getsize(file) * 8))
     index = (getsize(file)-1) * 8 * div
@@ -242,17 +245,16 @@ def oldfindDiv(dim: int, file: str, n: int) -> int:
     div = (image_dim // (getsize(file) * 8))
     return div
 
-def findDiv(dim: int, file: str, n: int) -> float:
+def findDiv(dim: int, file: str, n: int) -> float: # più stabile
     image_dim = dim * n
     div = ((image_dim - n) / (getsize(file) * 8))
     return div
 
-def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, int): # with arr -> faster and better
-    """Hides a file in a image"""
+def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, int): # versione con array
+    """Nasconde un file a caratteri"""
     system('cls')
-    # check if n is in range
     if n < 0 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8 or 0 for auto")
+        print("\33[1;31mERRORE\33[0m: n deve essere compreso tra 1 e 8 o 0 per la modalita' automatica")
         exit()
     # auto n
     if n == 0:
@@ -260,37 +262,33 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
             n += 1
             if n > 8:
                 f = img.filename.split("\\")[-1]
-                print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+                print(f"\33[1;31mERROR\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
                 exit()
-    # check if image is big enough
+    # controllo dimensioni
     if (img.width * img.height) * 3 * n < getsize(file) * 8:
         f = img.filename.split("\\")[-1]
-        print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+        print(f"\33[1;31mERROR\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
         exit()
-    # convert image to RGB
     if img.mode != "RGB":
         img = img.convert("RGB")
-    # convert image to array
+    # conversione in array
     arr = np.array(img).flatten().copy()
     total_pixels_ch = len(arr)
-    # check if div value is valid
     if div == 0:
         div = findDiv(total_pixels_ch, file, n)
     else:
         if total_pixels_ch * n < div * getsize(file) * 8:
-            print("\33[1;31mERROR\33[0m: div value too big, try 0")
+            print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
             exit()
-    # start hiding file
-    arcobaleno("HIDING FILE")
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
     start_time = time.time()
-    # read file by line
     with open(file, 'r', encoding='utf-8') as f:
         total_lines = sum(1 for line in f)
-        f.seek(0)  # go back to the start of the file
+        f.seek(0)
         rsv = ""
         ind = 0
-        for i, line in enumerate(f): # enumerate() returns a tuple with the index and the value
+        for i, line in enumerate(f):
             line = binaryConvert(line) 
             line = rsv + line
             rsv = ""
@@ -311,16 +309,15 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
                 if flag:
                     break
                 arr[ind] = setLastNBits(arr[ind], bit, n)
-                # go to next pixel/component
                 ind = (ind + div) % len(arr)
-            if (i + 1) % 1000 == 0:  # Change this number to control how often the progress is printed
+            if (i + 1) % 3000 == 0:
                 system('cls')
-                arcobaleno("HIDING FILE")
+                arcobaleno("OCCULTAMENTO FILE")
                 print("...")
                 progress = (i + 1) / total_lines
                 elapsed_time = time.time() - start_time
-                print(f"Elaboration {i + 1} of {total_lines} lines ({format((progress) * 100, '.2f')}%)")
-                print(f"Remaining time: {format(elapsed_time *(1 - progress) / progress, '.2f')} seconds")
+                print(f"Elaborate {i + 1} righe su {total_lines} ({format((progress) * 100, '.2f')}%)")
+                print(f"Tempo rimanente: {timeDisplay(elapsed_time *(1 - progress) / progress)}")
     rsv = list(rsv)
     # if there are still bits left, hide them
     while rsv != []:
@@ -336,29 +333,29 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
     f.close()
     # print percentage of pixels used
     system('cls')
-    arcobaleno("HIDING FILE")
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
-    print(f"Elaboration {total_lines} of {total_lines} lines (100.0%)")
-    print("Remaining time: 0.00 seconds")
-    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n}: {format(((getsize(file) * 8) / ((img.width * img.height) * 3 * n)) * 100, '.2f')}%")
+    print(f"Elaborate {total_lines} righe su {total_lines} (100.0%)")
+    print("Tempo rimanente: 0 secondi")
+    print(f"\33[1;32mTERMINATO\33[0m\nPercentuale di pixel usati con \33[32mn\33[0m={n} e \33[35mdiv\33[0m={div}: {format(((getsize(file) * 8) / ((img.width * img.height) * 3 * n)) * 100, '.2f')}%")
     img_copy = Image.fromarray(arr.reshape(img.height, img.width, 3))
     img_copy.save(new_img)
-    print(f"Image saved as \33[1;33m{new_img}\33[0m")
+    print(f"Immagine salvata come \33[33m{new_img}\33[0m")
     return (img_copy, n, div)
 
 def scan8(line: str, flag: str) -> int:
-    """Scans a line for a flag 8 bit at a time"""
+    """Scansiona una riga per un flag di 8 bit"""
     for i in range(0, len(line), 8):
         if line[i:i+8] == flag:
             return i
     return -1
 
-def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None:
+def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None: # deprecato
     """Gets a file from a image"""
     system('cls')
     # check if n is in range
     if n < 1 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8")
+        print("\33[1;31mERROR\33[0m: \33[32mn\33[0m must be between 1 and 8")
         exit()
     arcobaleno("GETTING FILE")
     print("...")
@@ -384,7 +381,7 @@ def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None:
                         char = char[:scan8(char, "00000000")]
                         char = binaryConvertBack(char)
                         file.write(char)
-                    print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[1;33m{new_file_path}\33[0m")
+                    print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[33m{new_file_path}\33[0m")
                     file.close()
                     return
                 stop = []
@@ -401,13 +398,13 @@ def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None:
                         i += 1
 
 def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with arr -> faster
-    """Gets a file from a image"""
+    """Ottieni un file da un'immagine"""
     system('cls')
     # check if n is in range
     if n < 1 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8")
+        print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8")
         exit()
-    arcobaleno("GETTING FILE")
+    arcobaleno("RICERCA FILE")
     print("...")
     # convert image to RGB
     if img.mode != "RGB":
@@ -432,7 +429,7 @@ def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with ar
                             char = char[:scan8(char, "00000000")]
                             char = binaryConvertBack(char)
                             file.write(char)
-                        print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[1;33m{new_file_path}\33[0m")
+                        print(f"\33[1;32mFILE TROVATO\33[0m\nFile salvato come \33[33m{new_file_path}\33[0m")
                         file.close()
                         return
                     stop = []
@@ -445,7 +442,7 @@ def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with ar
             # check if file is not found
             err -= 1
             if err < 0:
-                print("\33[1;31mERROR\33[0m: file not found")
+                print("\33[1;31mERRORE\33[0m: file non trovato")
                 exit()
 
 def zipdir(path: str, ziph: zipfile.ZipFile) -> None:
@@ -466,11 +463,11 @@ def getDirSize(path: str) -> int:
     return size
 
 def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0) -> (Image, int, float, int):
-    """Hides a file in a image"""
+    """Nasconde un file binario o una cartella"""
     system('cls')
     # check if n is in range
     if n < 0 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8 or 0 for auto")
+        print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8, 0 per la modalita' automatica")
         exit()
     # determine channels
     ch = 3
@@ -480,23 +477,23 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
         img = img.convert("RGB")
     # check if zipMode is in range
     if zipMode not in [0, 1, 2]:
-        print("\33[1;31mERROR\33[0m: zipMode must be 0, 1 or 2")
+        print("\33[1;31mERRORE\33[0m: zipMode deve essere 0, 1 o 2")
         exit()
     # zip file if zipMode is 1
     if zipMode == FILE:
-        print("Compressing file...")
+        print("Compressione file...")
         with zipfile.ZipFile('tmp.zip', 'w') as zf:
             zf.write(file)
         file = 'tmp.zip'
-        print("File compressed")
+        print("File compresso")
     # zip directory if zipMode is 2
     elif zipMode == DIR:
-        print("Compressing directory...")
+        print("Compressione directory...")
         zipf = zipfile.ZipFile('tmp.zip', 'w', zipfile.ZIP_DEFLATED)
         zipdir(file, zipf)
         file = 'tmp.zip'
         zipf.close()
-        print("Directory compressed")
+        print("Directory compressa")
     # get file size
     total_bytes = getsize(file)
     # auto n
@@ -505,12 +502,12 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
             n += 1
             if n > 8:
                 f = img.filename.split("\\")[-1]
-                print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+                print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
                 exit()
     # check if image is big enough
     elif (img.width * img.height) * ch * n < total_bytes * 8:
         f = img.filename.split("\\")[-1]
-        print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f}\33[0m too small to hide file")
+        print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
         exit()
     # convert image to array
     arr = np.array(img).flatten().copy()
@@ -520,11 +517,11 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
         div = findDiv(total_pixels_ch, file, n)
     else:
         if total_pixels_ch * n < div * total_bytes * 8:
-            print("\33[1;31mERROR\33[0m: div value too big, try 0")
+            print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
             exit()
     # start hiding file
     system('cls')
-    arcobaleno("HIDING FILE")
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
     start_time = time.time()
     rsv = ""
@@ -546,14 +543,14 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
                 pos = round(ind)
             if len(bits) > 0:
                 rsv = bits
-            if (i + 1) % 25000 == 0:  # Change this number to control how often the progress is printed
+            if (i + 1) % 50000 == 0:  # Change this number to control how often the progress is printed
                 system('cls')
-                arcobaleno("HIDING FILE")
+                arcobaleno("OCCULTAMENTO FILE")
                 print("...")
                 progress = (i + 1) / total_bytes
                 elapsed_time = time.time() - start_time
-                print(f"Elaboration {i + 1} of {total_bytes} bytes ({format((progress) * 100, '.2f')}%)")
-                print(f"Remaining time: {timeDisplay(elapsed_time *(1 - progress) / progress)}")
+                print(f"Elaborati {i + 1} byte su {total_bytes} ({format((progress) * 100, '.2f')}%)")
+                print(f"Tempo rimanente: {timeDisplay(elapsed_time *(1 - progress) / progress)}")
     f.close()
     while len(rsv) > 0:
         tmp = rsv[:n]
@@ -563,16 +560,16 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
         ind += div
         pos = round(ind)
     system('cls')
-    arcobaleno("HIDING FILE")
+    arcobaleno("OCCULTAMENTO FILE")
     print("...")
-    print(f"Elaboration {total_bytes} of {total_bytes} bytes (100.0%)")
-    print(f"\33[1;32mFINISHED\33[0m\nPercentage of pixels used with n={n} and div={div}: {format(((total_bytes * 8) / ((img.width * img.height) * ch * n)) * 100, '.2f')}%")
+    print(f"Elaborati {total_bytes} byte su {total_bytes} (100.0%)")
+    print(f"\33[1;32mTERMINATO\33[0m\nPercentuale di pixel usati con \33[32mn\33[0m={n} e \33[35mdiv\33[0m={div}: {format(((total_bytes * 8) / ((img.width * img.height) * ch * n)) * 100, '.2f')}%")
     if zipMode != NO_ZIP:
         # delete tmp.zip
         remove('tmp.zip')
     img_copy = Image.fromarray(arr.reshape(img.height, img.width, ch))
     img_copy.save(new_img)
-    print(f"Image saved as \33[1;33m{new_img}\33[0m")
+    print(f"Immagine salvata come \33[33m{new_img}\33[0m")
     return (img_copy, n, div, total_bytes)
 
 def string_to_bytes(bit_string):
@@ -584,17 +581,17 @@ def string_to_bytes(bit_string):
     return byte_array
 
 def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float, size: int) -> None: # with arr -> faster
-    """Gets a file from a image"""
+    """Ottieni un file binario da un'immagine"""
     system('cls')
     # check if n is in range
     if n < 1 or n > 8:
-        print("\33[1;31mERROR\33[0m: n must be between 1 and 8")
+        print("\33[1;31mERROR\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8")
         exit()
     # check if zipMode is in range
     if zipMode not in [0, 1, 2]:
-        print("\33[1;31mERROR\33[0m: zipMode must be 0, 1 or 2")
+        print("\33[1;31mERRORE\33[0m: zipMode deve essere 0, 1 o 2")
         exit()
-    arcobaleno("GETTING FILE")
+    arcobaleno("RICERCA FILE")
     print("...")
     # start getting file
     arr = np.array(img).flatten().copy()
@@ -620,26 +617,26 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
             ind += div
             pos = round(ind)
             # check if file is not found
-            if (i+1) % 100000 == 0:
+            if (i+1) % 1000000 == 0:
                 system("cls")
-                arcobaleno("GETTING FILE")
+                arcobaleno("RICERCA FILE")
                 print("...")
                 progress = i / (size*8//n)
                 elapsed_time = time.time() - start_time
-                print(f"Elaboration progress: {format(progress * 100, '.2f')}%")
-                print(f"Remaining time: {timeDisplay(elapsed_time *(1 - progress) / progress)}")               
+                print(f"Elaborazione in corso: {format(progress * 100, '.2f')}%")
+                print(f"Tempo rimanente: {timeDisplay(elapsed_time *(1 - progress) / progress)}")                
         if len(bits):
             bits = string_to_bytes(bits)
             file.write(bits)
         file.close()
         system("cls")
-        arcobaleno("GETTING FILE")
+        arcobaleno("OCCULTAMENTO FILE")
         print("...")
-        print("Elaboration progress: 100.0%")
+        print("Elaborazione in corso: 100.0%")
         if zipMode == NO_ZIP:
-            print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[1;33m{new_file_path}\33[0m")
+            print(f"\33[1;32mFILE TROVATO\33[0m\nFile salvato come \33[33m{new_file_path}\33[0m")
         elif zipMode == FILE:
-            print("Decompressing file...")
+            print("Decompressione file...")
             # unzip file
             try:
                 with zipfile.ZipFile(new_file_path, 'r') as zf:
@@ -651,46 +648,46 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
                     # delete tmp.zip
                     zf.close()
                     remove(new_file_path)
-                    print(f"\33[1;32mDECRYPTION DONE\33[0m\nFile saved as \33[1;33m{res}\33[0m")
+                    print(f"\33[1;32mFILE TROVATO\33[0m\nFile salvato come \33[33m{res}\33[0m")
             except Exception as e:
                 print(f"Errore durante l'estrazione: {e}")
         else:
-            print("Decompressing directory...")
+            print("Decompressione directory...")
             try:
                 with zipfile.ZipFile(new_file_path, 'r') as zf:
                     zf.extractall(res)
                     # delete tmp.zip
                     zf.close()
                     remove(new_file_path)
-                    print(f"\33[1;32mDECRYPTION DONE\33[0m\nDirectory saved as \33[1;33m{res}\33[0m")
+                    print(f"\33[1;32mDIRECTORY TROVATA\33[0m\nDirectory salvata come \33[33m{res}\33[0m")
             except Exception as e:
                 print(f"Errore durante l'estrazione: {e}")
 
 # big lsb -> img1 big distorsion
 # small msb -> img2 low quality
 def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (Image, int, int, float, int, int): # put img2 in img1 and return info for decryption
-    """Hides a image in another image
+    """Nasconde un'immagine in un'altra
         lsb: number of less significant bits of img1 to change
         msb: number of most significant bits of img2 to put in img1"""
     system('cls')
     # check if lsb is valid
     if lsb < 0 or lsb > 8:
-        print("\33[1;31mERROR\33[0m: lsb value must be between 1 and 8 or 0 for auto")
+        print("\33[1;31mERRORE\33[0m: il valore di \33[36mlsb\33[0m deve essere compreso tra 1 e 8 oppure 0 per la modalita' automatica")
         exit()
     # check if msb is valid
     if msb < 0 or msb > 8:
-        print("\33[1;31mERROR\33[0m: msb value must be between 1 and 8 or 0 for auto")
+        print("\33[1;31mERRORE\33[0m: il valore di \33[34mmsb\33[0m deve essere compreso tra 1 e 8 oppure 0 per la modalita' automatica")
         exit()
     # check if lsb is bigger than msb
     if lsb > msb:
-        print("\33[1;31mERROR\33[0m: lsb value must be smaller or equal to msb value")
+        print("\33[1;31mERRORE\33[0m: il valore di \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
         exit()
     # determine auto lsb and msb
     while lsb == 0:
         if msb == 0:
             f1 = img1.filename.split("\\")[-1]
             f2 = img2.filename.split("\\")[-1]
-            print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f1}\33[0m too small to hide image \33[1;31m{f2}\33[0m")
+            print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f1}\33[0m troppo piccola per nascondere l'immagine \33[31m{f2}\33[0m")
             exit()
         while((lsb * img1.width * img1.height) < (msb * img2.width * img2.height)):
             lsb += 1
@@ -701,7 +698,7 @@ def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (I
     if (lsb * img1.width * img1.height) < (msb * img2.width * img2.height):
         f1 = img1.filename.split("\\")[-1]
         f2 = img2.filename.split("\\")[-1]
-        print(f"\33[1;31mERROR\33[0m: Image \33[1;31m{f1}\33[0m too small to hide image \33[1;31m{f2}\33[0m")
+        print(f"\33[31mERRORE\33[0m: Immagine \33[31m{f1}\33[0m troppo piccola per nascondere l'immagine \33[31m{f2}\33[0m")
         exit()
     # convert image to RGB
     if img1.mode != "RGB":
@@ -715,84 +712,57 @@ def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (I
     arr2 = np.array(img2).flatten().copy()
     total_pixels_ch = len(arr2)
     start_time = time.time()
-    if lsb == msb:
-        if div == 0:
-            div = len(arr1) / len(arr2) # how many pixels of img1 are needed to hide one pixel of img2
-        else:
-            if div * len(arr2) > len(arr1):
-                print("\33[1;31mERROR\33[0m: div value too big")
-                exit()
-        i, j = 0, 0
-        arcobaleno("HIDING IMAGE")
-        print("...")
-        pos = 0
-        while i < len(arr2):
-            bits = format(arr2[i], '08b') # convert to binary
-            bits = bits[:msb] # take the msb most significant bits
-            arr1[j] = setLastNBits(arr1[j], bits, lsb)
-            i += 1
-            pos += div # skip div pixels of img1 -> more uniform distribution
-            j = round(pos)
-            if (i) % 180000 == 0:  # Change this number to control how often the progress is printed
-                system("cls")
-                arcobaleno("HIDING IMAGE")
-                print("...")
-                progress = i / total_pixels_ch
-                elapsed_time = time.time() - start_time
-                print(f"Elaboration progress: {format(progress * 100, '.2f')}%")
-                print(f"Remaining time: {format(elapsed_time * (1 - progress) / progress, '.2f')} seconds")
+    if div == 0:
+        div = (len(arr1) * lsb) / (len(arr2) * msb)
     else:
-        if div == 0:
-            div = (len(arr1) * lsb) / (len(arr2) * msb)
-        else:
-            if div * len(arr2) * msb > len(arr1) * lsb:
-                print("\33[1;31mERROR\33[0m: div value too big")
-                exit()
-        i, j = 0, 0
-        arcobaleno("HIDING IMAGE")
-        print("...")
-        pos = 0
-        bit_queue = ""
-        while i < len(arr2):
-            # extract msb bits from each channel of arr2
-            r, g, b = arr2[i], arr2[i + 1], arr2[i + 2]
-            bit_queue += format(r, '08b')[:msb] + format(g, '08b')[:msb] + format(b, '08b')[:msb]
-            while len(bit_queue) >= lsb * 3:
-                # extract lsb bits from each channel of arr1
-                r_bits, g_bits, b_bits = bit_queue[:lsb], bit_queue[lsb:2*lsb], bit_queue[2*lsb:3*lsb]
-                arr1[j] = setLastNBits(arr1[j], r_bits, lsb)
-                arr1[j + 1] = setLastNBits(arr1[j + 1], g_bits, lsb)
-                arr1[j + 2] = setLastNBits(arr1[j + 2], b_bits, lsb)
-                # remove lsb bits from bit_queue
-                bit_queue = bit_queue[lsb*3:]
-                pos += 3 * div
-                j = round(pos)
-            i += 3
-            if i % 180000 == 0:  # Change this number to control how often the progress is printed
-                system("cls")
-                arcobaleno("HIDING IMAGE")
-                print("...")
-                progress = i / total_pixels_ch
-                elapsed_time = time.time() - start_time
-                print(f"Elaboration progress: {format(progress * 100, '.2f')}%")
-                print(f"Remaining time: {format(elapsed_time * (1 - progress) / progress, '.2f')} seconds")
+        if div * len(arr2) * msb > len(arr1) * lsb:
+            print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
+            exit()
+    i, j = 0, 0
+    arcobaleno("OCCULTAMENTO IMMAGINE")
+    print("...")
+    pos = 0
+    bit_queue = ""
+    while i < len(arr2):
+        # extract msb bits from each channel of arr2
+        r, g, b = arr2[i], arr2[i + 1], arr2[i + 2]
+        bit_queue += format(r, '08b')[:msb] + format(g, '08b')[:msb] + format(b, '08b')[:msb]
+        while len(bit_queue) >= lsb * 3:
+            # extract lsb bits from each channel of arr1
+            r_bits, g_bits, b_bits = bit_queue[:lsb], bit_queue[lsb:2*lsb], bit_queue[2*lsb:3*lsb]
+            arr1[j] = setLastNBits(arr1[j], r_bits, lsb)
+            arr1[j + 1] = setLastNBits(arr1[j + 1], g_bits, lsb)
+            arr1[j + 2] = setLastNBits(arr1[j + 2], b_bits, lsb)
+            # remove lsb bits from bit_queue
+            bit_queue = bit_queue[lsb*3:]
+            pos += 3 * div
+            j = round(pos)
+        i += 3
+        if i % 180000 == 0:  # Change this number to control how often the progress is printed
+            system("cls")
+            arcobaleno("OCCULTAMENTO IMMAGINE")
+            print("...")
+            progress = i / total_pixels_ch
+            elapsed_time = time.time() - start_time
+            print(f"Elaborazione in corso: {format(progress * 100, '.2f')}%")
+            print(f"Tempo rimanente: {timeDisplay(elapsed_time * (1 - progress) / progress)}")
     # convert arr1 to image
     w, h = img2.width, img2.height
     system("cls")
-    arcobaleno("HIDING IMAGE")
+    arcobaleno("OCCULTAMENTO IMMAGINE")
     print("...")
-    print("Elaboration progress: 100.0%")
-    print("Remaining time: 0.00 seconds")
-    print(f"\33[1;32mFINISHED\n\33[0mPercentage of pixels used: {format((msb * img2.width * img2.height) / (lsb * img1.width * img1.height) * 100, '.2f')}%")
+    print("Elaborazione in corso: 100.0%")
+    print("Tempo rimanente: 0 secondi")
+    print(f"\33[1;32mTERMINATO\n\33[0mPercentuale di pixel usati con \33[36mlsb\33[0m={lsb}, \33[34mmsb\33[0m={msb} e \33[35mdiv\33[0m={div}: {format((msb * img2.width * img2.height) / (lsb * img1.width * img1.height) * 100, '.2f')}%")
     img1_copy = Image.fromarray(arr1.reshape(img1.height, img1.width, 3)) # save the copy so img1 is not modified
     img1_copy.save(new_img)
-    print(f"Image saved as \33[1;33m{new_img}\33[0m")
+    print(f"Immagine salvata come \33[33m{new_img}\33[0m")
     return (img1_copy, lsb, msb, div, w, h)
 
 def getImage(img: Image, new_img: str, lsb: int, msb: int, div: float, width: int, height: int) -> Image: # get img2 from img1
-    """Gets an hidden image from another image"""
+    """Ottieni un'immagine da un'altra"""
     system('cls')
-    arcobaleno("GETTING IMAGE")
+    arcobaleno("RICERCA IMMAGINE")
     print("...")
     start_time = time.time()
     size = width * height * 3
@@ -816,39 +786,523 @@ def getImage(img: Image, new_img: str, lsb: int, msb: int, div: float, width: in
         j = round(pos)
         if (n+1) % 180000 == 0:
             system("cls")
-            arcobaleno("GETTING IMAGE")
+            arcobaleno("RICERCA IMMAGINE")
             print("...")
             progress = n / size
-            print(f"Elaboration progress: {format(progress * 100, '.2f')}%")
+            print(f"Elaborazione in corso: {format(progress * 100, '.2f')}%")
             elapsed_time = time.time() - start_time
-            print(f"Remaining time: {format(elapsed_time * (1 - progress) / progress, '.2f')} seconds")
+            print(f"Tempo rimanente: {timeDisplay(elapsed_time * (1 - progress) / progress)}")
     system("cls")
-    arcobaleno("GETTING IMAGE")
+    arcobaleno("RICERCA IMMAGINE")
     print("...")
-    print("Elaboration progress: 100.0%")
-    print("Remaining time: 0.00 seconds")
+    print("Elaborazione in corso: 100.0%")
+    print("Tempo rimanente: 0 secondi")
     # convert res to image
     res = Image.fromarray(res.reshape(height, width, 3))
     res.save(new_img)
-    print(f"\33[1;32mFINISHED\n\33[0mImage saved as \33[1;33m{new_img}\33[0m")
+    print(f"\33[1;32mIMMAGINE TROVATA\n\33[0mImmagine salvata come \33[33m{new_img}\33[0m")
     return res
 
+def subMode() -> int:
+    system("cls")
+    print("Cosa vuoi fare?")
+    print("1. Nascondere dati")
+    print("2. Recuperare dati")
+    ret = input("--> ")
+    while ret == "" or not str(ret).isdigit() or int(ret) not in [1, 2]:  
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Cosa vuoi fare?")
+        print("1. Nascondere dati")
+        print("2. Recuperare dati")
+        ret = input("--> ")
+    return int(ret)
+
+def imgInput() -> Image:
+    while True:
+        system("cls")
+        print("Inserisci il nome dell'immagine su cui nascondere i dati")
+        img = input("Immagine --> ")
+        try:
+            img = Image.open(img)
+            break
+        except:
+            print("\33[1;31mERRORE\33[0m: immagine non trovata")
+            system("pause")
+    return img
+
+def imgInput2() -> Image:
+    while True:
+        system("cls")
+        print("Inserisci il nome dell'immagine da nascodere")
+        img = input("Immagine --> ")
+        try:
+            img = Image.open(img)
+            break
+        except:
+            print("\33[1;31mERRORE\33[0m: immagine non trovata")
+            system("pause")
+    return img
+
+def msginput() -> str:
+    system("cls")
+    print("Inserisci il messaggio da nascondere")
+    msg = input("Messaggio --> ")
+    return msg
+
+def imgOutput() -> str:
+    system("cls")
+    print("Inserisci il nome dell'immagine di output")
+    new_img = input("Immagine --> ")
+    # controlla se il file di output è un'immagine
+    while new_img[-4:] != ".png" and new_img[-4:] != ".jpg" and new_img[-5:] != ".jpeg":
+        print("\33[1;31mERRORE\33[0m: il file di output deve essere un'immagine")
+        system("pause")
+        system("cls")
+        print("Inserisci il nome dell'immagine di output")
+        new_img = input("Immagine --> ")  
+    return new_img
+
+def fileOutput() -> str:
+    while True:
+        system("cls")
+        print("Inserisci il nome del file di output")
+        out = input("File --> ")
+        try:
+            f = open(out, 'wb')
+            f.close()
+            break
+        except:
+            print("\33[1;31mERRORE\33[0m: file non trovato")
+            system("pause")
+    return out
+
+def imgInputReq() -> Image:
+    while True:
+        system("cls")
+        print("Inserisci il nome dell'immagine da cui recuperare i dati")
+        img = input("Immagine --> ")
+        try:
+            img = Image.open(img)
+            break
+        except:
+            print("\33[1;31mERRORE\33[0m: immagine non trovata")
+            system("pause")
+    return img
+
+def fileinput() -> str:
+    while True:
+        system("cls")
+        print("Inserisci il nome del file da nascondere")
+        file = input("File --> ")
+        try:
+            f = open(file, 'rb')
+            f.close()
+            break
+        except:
+            print("\33[1;31mERRORE\33[0m: file non trovato")
+            system("pause")
+    return file
+
+def parametriFacoltativi() -> bool:
+    system("cls")
+    print("Vuoi utilizzare i parametri di default? (Y/N)")
+    ans = input("--> ")
+    ans = ans.upper()
+    while ans == "" or (ans != "Y" and ans != "N"):
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Vuoi utilizzare i parametri di default? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+    return ans == "N"
+
+def parametriBackup(mode: int) -> bool:
+    system("cls")
+    if mode != mode_backup:
+        print("\33[1;31mERRORE\33[0m: i parametri di backup non sono compatibili con la modalita' scelta")
+        return False
+    print("Vuoi utilizzare i parametri di backup? (Y/N)")
+    ans = input("--> ")
+    ans = ans.upper()
+    while ans == "" or (ans != "Y" and ans != "N"):
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Vuoi utilizzare i parametri di backup? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+    return ans == "Y"
+
+def nInput(get=1) -> int:
+    system("cls")
+    print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+    if not get: print("NOTA: 0 per la modalita' automatica")
+    n = input("\33[32mn\33[0m --> ")
+    if not get:
+        while n == "" or not str(n).isdigit() or n < 0 or n > 8:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            print("NOTA: 0 per la modalita' automatica")
+            n = input("\33[32mn\33[0m --> ")
+    else:
+        while n == "" or not str(n).isdigit() or n < 1 or n > 8:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            print("NOTA: 0 per la modalita' automatica")
+            n = input("\33[32mn\33[0m --> ")
+    return n
+
+def divInput(get=1) -> int:
+    system("cls")
+    print("Inserisci il valore di \33[35mdiv\33[0m")
+    if not get: print("NOTA: 0 per la modalita' automatica")
+    div = input("\33[35mdiv\33[0m --> ")
+    if not get:
+        while div == "" or not str(div).isdigit() or div < 0:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il valore di \33[35mdiv\33[0m")
+            print("NOTA: 0 per la modalita' automatica")
+            div = input("\33[35mdiv\33[0m --> ")
+    else:
+        while div == "" or not str(div).isdigit() or div < 1:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il valore di \33[35mdiv\33[0m")
+            div = input("\33[35mdiv\33[0m --> ")
+    return div
+
+def LMInput(get=1) -> (int, int):
+    system("cls") # msb
+    print("Inserisci il valore \33[34mmsb\33[0m di bit piu' significativi da nascondere della seconda immagine")
+    if not get: print("NOTA: 0 per la modalita' automatica")
+    msb = input("\33[34mmsb\33[0m --> ")
+    if not get:
+        while msb == "" or not str(msb).isdigit() or msb < 0 or msb > 8:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            print("NOTA: 0 per la modalita' automatica")
+            msb = input("\33[34mmsb\33[0m --> ")
+    else:
+        while msb == "" or not str(msb).isdigit() or msb < 1 or msb > 8:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            msb = input("\33[34mmsb\33[0m --> ")
+    system("cls") # lsb
+    print("Inserisci il valore \33[36mlsb\33[0m di bit meno significativi da modificare nella prima immagine")
+    if not get: print("NOTA: 0 per la modalita' automatica")
+    print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+    lsb = input("\33[36mlsb\33[0m --> ")
+    if not get:
+        while lsb == "" or not str(lsb).isdigit() or lsb < 0 or lsb > 8 or lsb > msb:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            print("NOTA: 0 per la modalita' automatica")
+            print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+            lsb = input("\33[36mlsb\33[0m --> ")
+    else:
+        while lsb == "" or not str(lsb).isdigit() or lsb < 1 or lsb > 8 or lsb > msb:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
+            print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+            lsb = input("\33[36mlsb\33[0m --> ")
+    return (lsb, msb)
+
+def WHInput() -> (int, int):
+    system("cls")
+    print("Inserisci la larghezza dell'immagine da recuperare")
+    w = input("Larghezza --> ")
+    while w == "" or not str(w).isdigit() or w < 1:
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Inserisci la larghezza dell'immagine da recuperare")
+        w = input("Larghezza --> ")
+    system("cls")
+    print("Inserisci l'altezza dell'immagine da recuperare")
+    h = input("Altezza --> ")
+    while h == "" or not str(h).isdigit() or h < 1:
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Inserisci l'altezza dell'immagine da recuperare")
+        h = input("Altezza --> ")
+    return (w, h)
+
+def zipModeInput(path: str) -> int:
+    if isdir(path):
+        return DIR
+    elif isfile(path):
+        system("cls")
+        print("Vuoi comprimere il file? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+        while ans == "" or (ans != "Y" and ans != "N"):
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Vuoi comprimere il file? (Y/N)")
+            ans = input("--> ")
+            ans = ans.upper()
+        if ans == "N":
+            return NO_ZIP
+        else:
+            return FILE
+    else:
+        system("cls")
+        print("\33[1;31mERRORE\33[0m: problema con il file")
+        exit()
+        
+def zipModeGet() -> int:
+    system("cls")
+    print("I dati che cerchi sono compressi? (Y/N)")
+    ans = input("--> ")
+    ans = ans.upper()
+    while ans == "" or (ans != "Y" and ans != "N"):
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("I dati che cerchi sono compressi? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+    if ans == "N":
+        return NO_ZIP
+    else:
+        system("cls")
+        print("I dati che cerchi sono in un file o in una directory? (F/D)")
+        ans = input("--> ")
+        ans = ans.upper()
+        while ans == "" or (ans != "F" and ans != "D"):
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("I dati che cerchi sono in un file o in una directory? (F/D)")
+            ans = input("--> ")
+            ans = ans.upper()
+        if ans == "F":
+            return FILE
+        else:
+            return DIR
+
+def sizeInput() -> int:
+    system("cls")
+    print("Inserisci la dimensione del file da nascondere")
+    size = input("Dimensione --> ")
+    while size == "" or not str(size).isdigit() or size < 1:
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Inserisci la dimensione del file da nascondere")
+        size = input("Dimensione --> ")
+    return size
+
+# AREA DI BACKUP
+n_backup = 0
+div_backup = 0
+lsb_backup = 0
+msb_backup = 0
+size_backup = 0
+w_backup = 0
+h_backup = 0
+img_with_data_backup = ""
+extracted_backup = ""
+zipMode_backup = NO_ZIP
+mode_backup = 0
+       
+def mode(mod: int) -> bool:
+    global n_backup, div_backup, lsb_backup, msb_backup, size_backup
+    global w_backup, h_backup, img_with_data_backup, extracted_backup
+    global zipMode_backup, mode_backup
+    system("cls")
+    
+    # hideMessage()
+    if mod == 1:
+        sub = subMode()
+        if sub == 1:
+            img = imgInput()
+            msg = msginput()
+            new_img = imgOutput()
+            img_with_data_backup = hideMessage(img, msg, new_img)
+            mode_backup = 1
+            system("pause")
+            return True
+        elif sub == 2:
+            if parametriBackup(1):
+                img = img_with_data_backup
+            else:
+                img = imgInputReq()
+            print("Il messaggio e':")
+            try:
+                print(getMessage(img))
+            except:
+                print("\33[1;31mERRORE\33[0m: nessun messaggio trovato")
+            system("pause")
+            return True
+    
+    # hideFile()
+    elif mod == 2:
+        sub = subMode()
+        if sub == 1:
+            img = imgInput()
+            file = fileinput()
+            new_img = imgOutput()
+            if parametriFacoltativi():
+                n = nInput(0)
+                div = divInput(0)
+            else:
+                n = 0
+                div = 0
+            img_with_data_backup, n_backup, div_backup = hideFile(img, file, new_img, n, div)
+            mode_backup = 2
+            system("pause")
+            return True
+        elif sub == 2:
+            if parametriBackup():
+                img = img_with_data_backup
+                n = n_backup
+                div = div_backup
+                new_file = fileOutput()
+            else:
+                img = imgInputReq()
+                new_file = fileOutput()
+                n = nInput()
+                div = divInput()
+            getFile(img, new_file, n, div)
+            system("pause")
+            return True
+        
+    # hideImage()
+    elif mod == 3:
+        sub = subMode()
+        if sub == 1:
+            img1 = imgInput()
+            img2 = imgInput2()
+            new_img = imgOutput()
+            if parametriFacoltativi():
+                lsb, msb = LMInput(0)
+                div = divInput(0)
+            else:
+                lsb = 0
+                msb = 8
+                div = 0
+            img_with_data_backup, lsb_backup, msb_backup, div_backup, w_backup, h_backup = hideImage(img1, img2, new_img, lsb, msb, div)
+            mode_backup = 3
+            system("pause")
+            return True
+        elif sub == 2:
+            if parametriBackup():
+                img = img_with_data_backup
+                lsb = lsb_backup
+                msb = msb_backup
+                div = div_backup
+                w = w_backup
+                h = h_backup
+                new_img = imgOutput()
+            else:
+                img = imgInputReq()
+                lsb, msb = LMInput()
+                div = divInput()
+                w, h = WHInput()
+                new_img = imgOutput()
+            getImage(img, new_img, lsb, msb, div, w, h)
+            system("pause")
+            return True
+    
+    # hideBinFile()
+    elif mod == 4:
+        sub = subMode()
+        if sub == 1:
+            img = imgInput()
+            file = fileinput()
+            new_img = imgOutput()
+            zipMode = zipModeInput(file)
+            if parametriFacoltativi():
+                n = nInput(0)
+                div = divInput(0)
+            else:
+                n = 0
+                div = 0
+            zipMode_backup = zipMode
+            img_with_data_backup, n_backup, div_backup, size_backup = hideBinFile(img, file, new_img, n, div, zipMode)
+            mode_backup = 4
+            system("pause")
+            return True
+        elif sub == 2:
+            if parametriBackup(4):
+                img = img_with_data_backup
+                n = n_backup
+                div = div_backup
+                zipMode = zipMode_backup
+                size = size_backup
+                new_file = fileOutput()
+            else:
+                img = imgInputReq()
+                n = nInput()
+                div = divInput()
+                zipMode = zipModeGet()
+                size = sizeInput()
+                new_file = fileOutput()
+            getBinFile(img, new_file, zipMode, n, div, size)
+            system("pause")
+            return True 
+    # exit
+    else:
+        return False
+    
+def start() -> None:
+    system("cls")
+    print("Con cosa vuoi operare?")
+    print("1. Stringhe di testo")
+    print("2. File a caratteri")
+    print("3. Immagini dentro immagini")
+    print("4. File binari")
+    print("5. \33[31mESCI\33[0m")
+    ans = input("--> ")
+    while ans == "" or not str(ans).isdigit() or int(ans) not in [1,2,3,4,5]:
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Con cosa vuoi operare?")
+        print("1. Stringhe di testo")
+        print("2. File a caratteri")
+        print("3. Immagini dentro immagini")
+        print("4. File binari")
+        print("5. \33[31mESCI\33[0m")
+        ans = input("--> ")
+    ret = mode(int(ans))
+    if ret:
+        start()
+    
+def ascii_art() -> None:
+    colors = ["red","yellow","green","cyan","blue","magenta"]
+    str = "STEGANOGRAFIA\nversione 2.0"
+    print(colored(figlet_format(str, font="slant"), colors[randint(0,5)], 'on_black', ['bold', 'blink']), end='')
+    print("by ", end='')
+    arcobaleno("Giuseppe Bellamacina")
+    print("\n")
+    system("pause")
 
 def main():
-    # use jpeg to improve compression, png for binary files
+    colorama.init()
+    ascii_art()
     system("cls")
-    path1 = "pic\\fluo.jpg"
-    path2 = "tex"
-    new, ext = splitext(path2)
-    new = "test"
-    img_with_data = "new.png"
-    zipMode = DIR
-    n = 0
-    div = 0
-    
-    
-    img = Image.open(path1)
-    ret, n, div, size = hideBinFile(img, path2, img_with_data, zipMode, n, div)
-    getBinFile(ret, new + ext, zipMode, n, div, size)
+    start()
 
 main()
