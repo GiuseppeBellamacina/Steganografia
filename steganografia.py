@@ -1,7 +1,7 @@
 # Author: Giuseppe Bellamacina
 
 from os import system, remove, walk
-from os.path import getsize, join, relpath, isfile, isdir
+from os.path import getsize, join, relpath, isfile, isdir, exists
 from pyfiglet import figlet_format
 import colorama
 from random import randint
@@ -873,7 +873,7 @@ def fileOutput() -> str:
         print("Inserisci il nome del file di output")
         out = input("File --> ")
         try:
-            f = open(out, 'wb')
+            f = open(out, 'w')
             f.close()
             break
         except:
@@ -894,19 +894,49 @@ def imgInputReq() -> Image:
             system("pause")
     return img
 
-def fileinput() -> str:
+def fileInput() -> str:
     while True:
         system("cls")
         print("Inserisci il nome del file da nascondere")
         file = input("File --> ")
         try:
-            f = open(file, 'rb')
+            f = open(file, 'r')
             f.close()
             break
         except:
             print("\33[1;31mERRORE\33[0m: file non trovato")
             system("pause")
     return file
+
+def binInput() -> str:
+    while True:
+        system("cls")
+        print("Inserisci il nome del file o directory da nascondere")
+        path = input("Dati --> ")
+        try:
+            if isfile(path):
+                f = open(path, 'rb')
+                f.close()
+                break
+            elif isdir(path) and exists(path):
+                break
+        except:
+            print("\33[1;31mERRORE\33[0m: percorso non trovato")
+            system("pause")
+    return path
+
+def binOutput() -> str:
+    while True:
+        system("cls")
+        print("Inserisci il nome del file o directory di output")
+        out = input("Dati --> ")
+        try:
+            if out != "":
+                break
+        except:
+            print("\33[1;31mERRORE\33[0m: percorso non valido")
+            system("pause")
+    return out
 
 def parametriFacoltativi() -> bool:
     system("cls")
@@ -1190,12 +1220,12 @@ def mode(mod: int) -> bool:
         if sub == 1:
             img = imgInput()
             mx = contains(img, 2)
-            file = fileinput()
+            file = fileInput()
             while mx < getsize(file):
                 system("cls")
                 print("\33[1;31mERRORE\33[0m: il file e' troppo grande per essere nascosto")
                 system("pause")
-                file = fileinput()
+                file = fileInput()
             new_img = imgOutput()
             if parametriFacoltativi():
                 n = nInput(0)
@@ -1279,12 +1309,12 @@ def mode(mod: int) -> bool:
         if sub == 1:
             img = imgInput()
             mx = contains(img, 4)
-            file = fileinput()
+            file = binInput()
             while mx < (getsize(file) if isfile(file) else getDirSize(file)):
                 system("cls")
                 print("\33[1;31mERRORE\33[0m: i dati sono troppi per essere nascosti")
                 system("pause")
-                file = fileinput()
+                file = binInput()
             new_img = imgOutput()
             zipMode = zipModeInput(file)
             if parametriFacoltativi():
@@ -1305,14 +1335,14 @@ def mode(mod: int) -> bool:
                 div = div_backup
                 zipMode = zipMode_backup
                 size = size_backup
-                new_file = fileOutput()
+                new_file = binOutput()
             else:
                 img = imgInputReq()
                 n = nInput()
                 div = divInput()
                 zipMode = zipModeGet()
                 size = sizeInput()
-                new_file = fileOutput()
+                new_file = binOutput()
             getBinFile(img, new_file, zipMode, n, div, size)
             system("pause")
             return True 
