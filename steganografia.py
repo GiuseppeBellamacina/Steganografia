@@ -1123,7 +1123,7 @@ def bytes_to_kb_or_mb(bytes_value: int) -> str:
     mb = kb / 1024
     return f"{mb:.2f} MB"
 
-def contains(img: Image, mode: int) -> None:
+def contains(img: Image, mode: int) -> int:
     system("cls")
     print("L'immagine selezionata puo' contenere:")
     if img.mode == "RGB":
@@ -1138,7 +1138,9 @@ def contains(img: Image, mode: int) -> None:
     else:
         for i in range(1, 9):
             c = round((pixels_ch * i) / 8)
-            print(f"Per \33[32mn\33[0m={i}: {c} pixels da {ch} canali")       
+            print(f"Per \33[32mn\33[0m={i}: {c} pixels da {ch} canali")
+    system("pause")
+    return c
 
 # AREA DI BACKUP
 n_backup = 0
@@ -1187,8 +1189,13 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img = imgInput()
-            contains(img, 2)
+            mx = contains(img, 2)
             file = fileinput()
+            while mx > getsize(file):
+                system("cls")
+                print("\33[1;31mERRORE\33[0m: il file e' troppo grande per essere nascosto")
+                system("pause")
+                file = fileinput()
             new_img = imgOutput()
             if parametriFacoltativi():
                 n = nInput(0)
@@ -1220,8 +1227,21 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img1 = imgInput()
-            contains(img1, 3)
+            mx = contains(img1, 3)
             img2 = imgInput2()
+            if img2.mode == "RGB":
+                ch = 3
+            elif img2.mode == "RGBA":
+                ch = 4
+            while mx > img2.width * img2.height * ch:
+                system("cls")
+                print("\33[1;31mERRORE\33[0m: l'immagine e' troppo grande per essere nascosta")
+                system("pause")
+                img2 = imgInput2()
+                if img2.mode == "RGB":
+                    ch = 3
+                elif img2.mode == "RGBA":
+                    ch = 4
             new_img = imgOutput()
             if parametriFacoltativi():
                 lsb, msb = LMInput(0)
@@ -1258,8 +1278,13 @@ def mode(mod: int) -> bool:
         sub = subMode()
         if sub == 1:
             img = imgInput()
-            contains(img, 4)
+            mx = contains(img, 4)
             file = fileinput()
+            while mx > getsize(file):
+                system("cls")
+                print("\33[1;31mERRORE\33[0m: il file e' troppo grande per essere nascosto")
+                system("pause")
+                file = fileinput()
             new_img = imgOutput()
             zipMode = zipModeInput(file)
             if parametriFacoltativi():
