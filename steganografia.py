@@ -854,17 +854,29 @@ def msginput() -> str:
     msg = input("Messaggio --> ")
     return msg
 
-def imgOutput() -> str:
+def imgOutput(imgIn=None) -> str:
     system("cls")
+    flag = False
     print("Inserisci il nome dell'immagine di output")
+    if imgIn != None and imgIn.mode == "RGBA":
+        print("NOTA: l'immagine di output dovra' essere in formato PNG per preservare la trasparenza")
+        flag = True
     new_img = input("Immagine --> ")
+    if flag:
+        while new_img[-4:] != ".png":
+            print("\33[1;31mERRORE\33[0m: l'immagine di output deve essere in formato PNG")
+            system("pause")
+            system("cls")
+            print("Inserisci il nome dell'immagine di output")
+            new_img = input("Immagine --> ")
+    else:
     # controlla se il file di output è un'immagine
-    while new_img[-4:] != ".png" and new_img[-4:] != ".jpg" and new_img[-5:] != ".jpeg":
-        print("\33[1;31mERRORE\33[0m: il file di output deve essere un'immagine")
-        system("pause")
-        system("cls")
-        print("Inserisci il nome dell'immagine di output")
-        new_img = input("Immagine --> ")  
+        while new_img[-4:] != ".png" and new_img[-4:] != ".jpg" and new_img[-5:] != ".jpeg":
+            print("\33[1;31mERRORE\33[0m: il file di output deve essere un'immagine")
+            system("pause")
+            system("cls")
+            print("Inserisci il nome dell'immagine di output")
+            new_img = input("Immagine --> ")  
     return new_img
 
 def fileOutput() -> str:
@@ -1315,7 +1327,7 @@ def mode(mod: int) -> bool:
                 print("\33[1;31mERRORE\33[0m: i dati sono troppi per essere nascosti")
                 system("pause")
                 file = binInput()
-            new_img = imgOutput()
+            new_img = imgOutput(img)
             zipMode = zipModeInput(file)
             if parametriFacoltativi():
                 n = nInput(0)
