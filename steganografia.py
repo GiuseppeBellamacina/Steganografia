@@ -4,6 +4,7 @@ from os import system, remove, walk
 from os.path import getsize, join, relpath, isfile, isdir, exists
 from pyfiglet import figlet_format
 import colorama
+import pickle
 from random import randint
 from PIL import Image
 import numpy as np
@@ -250,7 +251,7 @@ def findDiv(dim: int, file: str, n: int) -> float: # più stabile
     div = ((image_dim - n) / (getsize(file) * 8))
     return div
 
-def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, int): # versione con array
+def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, float): # versione con array
     """Nasconde un file a caratteri"""
     system('cls')
     if n < 0 or n > 8:
@@ -287,7 +288,7 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
         total_lines = sum(1 for line in f)
         f.seek(0)
         rsv = ""
-        ind = 0
+        ind, pos = 0, 0
         for i, line in enumerate(f):
             line = binaryConvert(line) 
             line = rsv + line
@@ -308,8 +309,9 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
                         break
                 if flag:
                     break
-                arr[ind] = setLastNBits(arr[ind], bit, n)
-                ind = (ind + div) % len(arr)
+                arr[pos] = setLastNBits(arr[pos], bit, n)
+                ind += div
+                pos = round(ind)
             if (i + 1) % 3000 == 0:
                 system('cls')
                 arcobaleno("OCCULTAMENTO FILE")
@@ -327,9 +329,9 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, in
                 bit += rsv.pop(0)
             else:
                 bit += "0"
-        arr[ind] = setLastNBits(arr[ind], bit, n)
-        # go to next pixel/component
-        ind = (ind + div) % len(arr)
+        arr[pos] = setLastNBits(arr[pos], bit, n)
+        ind += div
+        pos = round(ind)
     f.close()
     # print percentage of pixels used
     system('cls')
@@ -397,7 +399,7 @@ def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None: 
                     if j == 0:
                         i += 1
 
-def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with arr -> faster
+def getFile(img: Image, new_file_path: str, n: int, div: float) -> None: # with arr -> faster
     """Ottieni un file da un'immagine"""
     system('cls')
     # check if n is in range
@@ -412,7 +414,7 @@ def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with ar
     # start getting file
     arr = np.array(img).flatten().copy()
     char, stop = [], []
-    pos = 0
+    pos, inde = 0, 0
     err = len(arr)
     with open(new_file_path, 'w', encoding='utf-8') as file:
         while True:
@@ -438,7 +440,8 @@ def getFile(img: Image, new_file_path: str, n: int, div: int) -> None: # with ar
                         char = binaryConvertBack(char)
                         file.write(char)
                         char = []
-            pos = (pos + div) % len(arr)
+            inde += div
+            pos = round(inde)
             # check if file is not found
             err -= 1
             if err < 0:
@@ -965,10 +968,8 @@ def parametriFacoltativi() -> bool:
     return ans == "N"
 
 def parametriBackup(mode: int) -> bool:
+    ret = False
     system("cls")
-    if mode != mode_backup:
-        print("\33[1;31mERRORE\33[0m: i parametri di backup non sono compatibili con la modalita' scelta")
-        return False
     print("Vuoi utilizzare i parametri di backup? (Y/N)")
     ans = input("--> ")
     ans = ans.upper()
@@ -979,8 +980,41 @@ def parametriBackup(mode: int) -> bool:
         print("Vuoi utilizzare i parametri di backup? (Y/N)")
         ans = input("--> ")
         ans = ans.upper()
-    return ans == "Y"
-
+    if ans == "N":
+        return ret
+    else:
+        ret = True
+        system("cls")
+        print("Quali parametri vuoi usare?")
+        print("1. Recenti")
+        print("2. Da file")
+        ans = input("--> ")
+        while ans == "" or not str(ans).isdigit() or int(ans) not in [1, 2]:
+            print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+            system("pause")
+            system("cls")
+            print("Quali parametri vuoi usare?")
+            print("1. Recenti")
+            print("2. Da file")
+            ans = input("--> ")
+        if int(ans) == 1:
+            return ret
+        if int(ans) == 2:
+            while True:
+                system("cls")
+                print("Inserisci il nome del file")
+                path = input("File di backup --> ")
+                try:
+                    if isfile(path):
+                        f = open(path, 'rb')
+                        f.close()
+                        break
+                except:
+                    print("\33[1;31mERRORE\33[0m: percorso non trovato")
+                    system("pause")
+            recoverData(path)
+            return ret
+            
 def nInput(get=1) -> int:
     system("cls")
     print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
@@ -1184,6 +1218,56 @@ def contains(img: Image, mode: int) -> int:
     system("pause")
     return c
 
+def saveData()-> None:
+    global n_backup, div_backup, lsb_backup, msb_backup, size_backup, zipMode_backup
+    global w_backup, h_backup, img_with_data_backup, extracted_backup, mode_backup
+    system("cls")
+    print("Vuoi salvare i dati? (Y/N)")
+    ans = input("--> ")
+    ans = ans.upper()
+    while ans == "" or (ans != "Y" and ans != "N"):
+        print("\33[1;31mERRORE\33[0m: inserisci un valore valido")
+        system("pause")
+        system("cls")
+        print("Vuoi salvare i dati? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+    if ans == "Y":
+        while True:
+            system("cls")
+            print("Inserisci il nome del file di output")
+            out = input("File --> ")
+            try:
+                f = open(out, 'w')
+                f.close()
+                break
+            except:
+                print("\33[1;31mERRORE\33[0m: file non creato correttamente")
+                system("pause")
+        backup = [n_backup, div_backup, lsb_backup, msb_backup, size_backup, w_backup, h_backup, img_with_data_backup, extracted_backup, zipMode_backup, mode_backup]
+        with open(out, "wb") as file:
+            pickle.dump(backup, file)
+        system("cls")
+        print("\33[1;32mDATI SALVATI\33[0m")
+        system("pause")
+
+def recoverData(file: str) -> None:
+    global n_backup, div_backup, lsb_backup, msb_backup, size_backup, zipMode_backup
+    global w_backup, h_backup, img_with_data_backup, extracted_backup, mode_backup
+    with open(file, "rb") as file:
+        backup = pickle.load(file)
+    n_backup = backup[0]
+    div_backup = backup[1]
+    lsb_backup = backup[2]
+    msb_backup = backup[3]
+    size_backup = backup[4]
+    w_backup = backup[5]
+    h_backup = backup[6]
+    img_with_data_backup = backup[7]
+    extracted_backup = backup[8]
+    zipMode_backup = backup[9]
+    mode_backup = backup[10]
+        
 # AREA DI BACKUP
 n_backup = 0
 div_backup = 0
@@ -1212,6 +1296,7 @@ def mode(mod: int) -> bool:
             img_with_data_backup = hideMessage(img, msg, new_img)
             mode_backup = 1
             system("pause")
+            saveData()
             return True
         elif sub == 2:
             if parametriBackup(1):
@@ -1248,6 +1333,7 @@ def mode(mod: int) -> bool:
             img_with_data_backup, n_backup, div_backup = hideFile(img, file, new_img, n, div)
             mode_backup = 2
             system("pause")
+            saveData()
             return True
         elif sub == 2:
             if parametriBackup(2):
@@ -1295,6 +1381,7 @@ def mode(mod: int) -> bool:
             img_with_data_backup, lsb_backup, msb_backup, div_backup, w_backup, h_backup = hideImage(img1, img2, new_img, lsb, msb, div)
             mode_backup = 3
             system("pause")
+            saveData()
             return True
         elif sub == 2:
             if parametriBackup(3):
@@ -1339,6 +1426,7 @@ def mode(mod: int) -> bool:
             img_with_data_backup, n_backup, div_backup, size_backup = hideBinFile(img, file, new_img, zipMode, n, div)
             mode_backup = 4
             system("pause")
+            saveData()
             return True
         elif sub == 2:
             if parametriBackup(4):
