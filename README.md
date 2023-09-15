@@ -27,3 +27,5 @@ Tramite **hideBinFile()** e **getBinFile()** è possibile nascondere file binari
 ___
 ## Per ulteriori informazioni
 Non lo so, già è assai che ho fatto sto coso, se volete sapere altro studiatevi sta roba e via
+Un'ultima cosa che forse ti starai chiedendo (a parte se sono pazzo, la cui risposta è sì), se hai problemi
+nell'inserimento delle foto quando ti chiede di inserire il path, prova a separare le cartelle con \\ (doppio slash inverso), su Python si fa così
