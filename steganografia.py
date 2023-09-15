@@ -1083,7 +1083,7 @@ def LMInput(get=1) -> (int, int):
     system("cls") # lsb
     print("Inserisci il valore \33[36mlsb\33[0m di bit meno significativi da modificare nella prima immagine")
     if not get: print("NOTA: 0 per la modalita' automatica")
-    print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+    print("NOTA: \33[36mlsb\33[0m deve essere minore o uguale a \33[34mmsb\33[0m")
     lsb = input("\33[36mlsb\33[0m --> ")
     if not get:
         while lsb == "" or not str(lsb).isdigit() or int(lsb) < 0 or int(lsb) > 8 or int(lsb) > int(msb):
@@ -1092,7 +1092,7 @@ def LMInput(get=1) -> (int, int):
             system("cls")
             print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
             print("NOTA: 0 per la modalita' automatica")
-            print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+            print("NOTA: \33[36mlsb\33[0m deve essere minore o uguale a \33[34mmsb\33[0m")
             lsb = input("\33[36mlsb\33[0m --> ")
     else:
         while lsb == "" or not str(lsb).isdigit() or int(lsb) < 1 or int(lsb) > 8 or int(lsb) > int(msb):
@@ -1100,7 +1100,7 @@ def LMInput(get=1) -> (int, int):
             system("pause")
             system("cls")
             print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
-            print("NOTA: \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
+            print("NOTA: \33[36mlsb\33[0m deve essere minore o uguale a \33[34mmsb\33[0m")
             lsb = input("\33[36mlsb\33[0m --> ")
     return (int(lsb), int(msb))
 
