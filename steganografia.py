@@ -76,7 +76,8 @@ def hideMessage(img: Image, msg: str, new_img: str) -> Image:
     if (img.width * img.height) * 3 < len(msg) * 8:
         f = img.filename.split("\\")[-1]
         print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il messaggio")
-        exit()
+        system("pause")
+        return img
     # converte in RGB
     if img.mode != "RGB":
         img = img.convert("RGB")
@@ -136,7 +137,8 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
     # controlla se n è valido
     if n < 0 or n > 8:
         print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8 o 0 per la modalita' automatica")
-        exit()
+        system("pause")
+        return img, -1
     # auto n
     if n == 0:
         while (img.width * img.height) * 3 * n < getsize(file) * 8:
@@ -144,12 +146,14 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
             if n > 8:
                 f = img.filename.split("\\")[-1]
                 print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-                exit()
+                system("pause")
+        return img, -1
     # controllo dimensioni
     if (img.width * img.height) * 3 * n < getsize(file) * 8:
         f = img.filename.split("\\")[-1]
         print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-        exit()
+        system("pause")
+        return img, -1
     if img.mode != "RGB":
         img = img.convert("RGB")
     # controlla se div è valido
@@ -158,7 +162,8 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
     else:
         if img.width * img.height * 3 * n < div * getsize(file) * 8:
             print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
-            exit()
+            system("pause")
+            return img, -1
     # avvio procedura
     arcobaleno("OCCULTAMENTO FILE")
     print("...")
@@ -256,7 +261,8 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, fl
     system('cls')
     if n < 0 or n > 8:
         print("\33[1;31mERRORE\33[0m: n deve essere compreso tra 1 e 8 o 0 per la modalita' automatica")
-        exit()
+        system("pause")
+        return img, -1, -1.0
     # auto n
     if n == 0:
         while (img.width * img.height) * 3 * n < getsize(file) * 8:
@@ -264,12 +270,14 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, fl
             if n > 8:
                 f = img.filename.split("\\")[-1]
                 print(f"\33[1;31mERROR\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-                exit()
+                system("pause")
+                return img, -1, -1.0
     # controllo dimensioni
     if (img.width * img.height) * 3 * n < getsize(file) * 8:
         f = img.filename.split("\\")[-1]
         print(f"\33[1;31mERROR\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-        exit()
+        system("pause")
+        return img, -1, -1.0
     if img.mode != "RGB":
         img = img.convert("RGB")
     # conversione in array
@@ -280,7 +288,8 @@ def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, fl
     else:
         if total_pixels_ch * n < div * getsize(file) * 8:
             print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
-            exit()
+            system("pause")
+            return img, -1, -1.0
     arcobaleno("OCCULTAMENTO FILE")
     print("...")
     start_time = time.time()
@@ -358,7 +367,8 @@ def getFile_with_mat(img: Image, new_file_path: str, n: int, div: int) -> None: 
     # check if n is in range
     if n < 1 or n > 8:
         print("\33[1;31mERROR\33[0m: \33[32mn\33[0m must be between 1 and 8")
-        exit()
+        system("pause")
+        return
     arcobaleno("GETTING FILE")
     print("...")
     # convert image to RGB
@@ -405,7 +415,8 @@ def getFile(img: Image, new_file_path: str, n: int, div: float) -> None: # with 
     # check if n is in range
     if n < 1 or n > 8:
         print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8")
-        exit()
+        system("pause")
+        return
     arcobaleno("RICERCA FILE")
     print("...")
     # convert image to RGB
@@ -446,7 +457,8 @@ def getFile(img: Image, new_file_path: str, n: int, div: float) -> None: # with 
             err -= 1
             if err < 0:
                 print("\33[1;31mERRORE\33[0m: file non trovato")
-                exit()
+                system("pause")
+                return
 
 def zipdir(path: str, ziph: zipfile.ZipFile) -> None:
     """Zips a directory"""
@@ -471,7 +483,8 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
     # check if n is in range
     if n < 0 or n > 8:
         print("\33[1;31mERRORE\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8, 0 per la modalita' automatica")
-        exit()
+        system("pause")
+        return img, -1, -1.0, -1
     # determine channels
     ch = 3
     if img.mode == "RGBA":
@@ -481,7 +494,8 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
     # check if zipMode is in range
     if zipMode not in [0, 1, 2]:
         print("\33[1;31mERRORE\33[0m: zipMode deve essere 0, 1 o 2")
-        exit()
+        system("pause")
+        return img, -1, -1.0, -1
     # zip file if zipMode is 1
     if zipMode == FILE:
         print("Compressione file...")
@@ -506,12 +520,14 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
             if n > 8:
                 f = img.filename.split("\\")[-1]
                 print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-                exit()
+                system("pause")
+                return img, -1, -1.0, -1
     # check if image is big enough
     elif (img.width * img.height) * ch * n < total_bytes * 8:
         f = img.filename.split("\\")[-1]
         print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f}\33[0m troppo piccola per nascondere il file")
-        exit()
+        system("pause")
+        return img, -1, -1.0, -1
     # convert image to array
     arr = np.array(img).flatten().copy()
     total_pixels_ch = len(arr)
@@ -521,7 +537,8 @@ def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0)
     else:
         if total_pixels_ch * n < div * total_bytes * 8:
             print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
-            exit()
+            system("pause")
+            return img, -1, -1.0, -1
     # start hiding file
     system('cls')
     arcobaleno("OCCULTAMENTO FILE")
@@ -589,11 +606,13 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
     # check if n is in range
     if n < 1 or n > 8:
         print("\33[1;31mERROR\33[0m: \33[32mn\33[0m deve essere compreso tra 1 e 8")
-        exit()
+        system("pause")
+        return
     # check if zipMode is in range
     if zipMode not in [0, 1, 2]:
         print("\33[1;31mERRORE\33[0m: zipMode deve essere 0, 1 o 2")
-        exit()
+        system("pause")
+        return img, -1, -1.0, -1
     arcobaleno("RICERCA FILE")
     print("...")
     # start getting file
@@ -679,22 +698,26 @@ def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (I
     # check if lsb is valid
     if lsb < 0 or lsb > 8:
         print("\33[1;31mERRORE\33[0m: il valore di \33[36mlsb\33[0m deve essere compreso tra 1 e 8 oppure 0 per la modalita' automatica")
-        exit()
+        system("pause")
+        return img1, -1, -1, -1.0, -1, -1
     # check if msb is valid
     if msb < 0 or msb > 8:
         print("\33[1;31mERRORE\33[0m: il valore di \33[34mmsb\33[0m deve essere compreso tra 1 e 8 oppure 0 per la modalita' automatica")
-        exit()
+        system("pause")
+        return img1, -1, -1, -1.0, -1, -1
     # check if lsb is bigger than msb
     if lsb > msb:
         print("\33[1;31mERRORE\33[0m: il valore di \33[36mlsb\33[0m deve essere minore di \33[34mmsb\33[0m")
-        exit()
+        system("pause")
+        return img1, -1, -1, -1.0, -1, -1
     # determine auto lsb and msb
     while lsb == 0:
         if msb == 0:
             f1 = img1.filename.split("\\")[-1]
             f2 = img2.filename.split("\\")[-1]
             print(f"\33[1;31mERRORE\33[0m: Immagine \33[31m{f1}\33[0m troppo piccola per nascondere l'immagine \33[31m{f2}\33[0m")
-            exit()
+            system("pause")
+            return img1, -1, -1, -1.0, -1, -1
         while((lsb * img1.width * img1.height) < (msb * img2.width * img2.height)):
             lsb += 1
             if lsb > msb:
@@ -705,7 +728,8 @@ def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (I
         f1 = img1.filename.split("\\")[-1]
         f2 = img2.filename.split("\\")[-1]
         print(f"\33[31mERRORE\33[0m: Immagine \33[31m{f1}\33[0m troppo piccola per nascondere l'immagine \33[31m{f2}\33[0m")
-        exit()
+        system("pause")
+        return img1, -1, -1, -1.0, -1, -1
     # convert image to RGB
     if img1.mode != "RGB":
         img1 = img1.convert("RGB")
@@ -723,7 +747,8 @@ def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (I
     else:
         if div * len(arr2) * msb > len(arr1) * lsb:
             print("\33[1;31mERRORE\33[0m: il valore di \33[35mdiv\33[0m e' eccessivo, prova 0")
-            exit()
+            system("pause")
+            return img1, -1, -1, -1.0, -1, -1
     i, j = 0, 0
     arcobaleno("OCCULTAMENTO IMMAGINE")
     print("...")
@@ -1147,7 +1172,8 @@ def zipModeInput(path: str) -> int:
     else:
         system("cls")
         print("\33[1;31mERRORE\33[0m: problema con il file")
-        exit()
+        system("pause")
+        return -1
         
 def zipModeGet() -> int:
     system("cls")
