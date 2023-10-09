@@ -29,11 +29,14 @@ pip install pandas
 echo Installazione plotly...
 pip install plotly
 
+echo Installazione Pillow...
+pip install Pillow
+
 echo Installazione matplolib...
 pip install matplotlib
 
 echo Installazione jupyter...
-pip install jupiter
+pip install jupyter
 
 echo Installazione termcolor...
 pip install termcolor
@@ -43,9 +46,6 @@ pip install pyfiglet
 
 echo Installazione colorama...
 pip install colorama
-
-echo Installazione Pillow...
-pip install Pillow
 
 echo.
 echo Tutte le librerie sono state installate con successo!
