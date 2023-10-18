@@ -1,4 +1,5 @@
 # Author: Giuseppe Bellamacina
+# Attenzione: si consiglia di creare immagini in formato PNG per evitare perdita di dati
 
 from os import system, remove, walk
 from os.path import getsize, join, relpath, isfile, isdir, exists

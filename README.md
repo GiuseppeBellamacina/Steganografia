@@ -23,6 +23,7 @@ Tramite **hideImage()** e **getImage()** è possibile nascondere altre immagini 
 ## File binari
 
 Tramite **hideBinFile()** e **getBinFile()** è possibile nascondere file binari (pdf, immagini, video, eseguibili...) all'interno delle immagini. Si possono specificare le stesse cose delle funzioni per i file a caratteri, in più si puo' decidere di comprimere i dati prima di eseguire il processo. Si puo' anche operare con le directory purché vengano prima compresse in un unico file '.zip'.
+Si consiglia di creare immagini in formato '.png' per nascondere file binari, in quanto questo formato non comprime i dati e quindi non altera il contenuto del file che si vuole nascondere.
 
 ___
 ## Per ulteriori informazioni
