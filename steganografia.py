@@ -1292,8 +1292,30 @@ def recoverData(file: str) -> None:
     img_with_data_name_backup = backup[7]
     zipMode_backup = backup[8]
     mode_backup = backup[9]
+    system("cls")
+    print("Hai cambiato nome all'immagine con i dati? (Y/N)")
+    ans = input("--> ")
+    ans = ans.upper()
+    while ans == "" or (ans != "Y" and ans != "N"):
+        system("cls")
+        print("Hai cambiato nome all'immagine con i dati? (Y/N)")
+        ans = input("--> ")
+        ans = ans.upper()
+    if ans == "Y":
+        while True:
+            system("cls")
+            print("Inserisci il nome dell'immagine con i dati")
+            img = input("Immagine --> ")
+            try:
+                img_with_data_name_backup = img
+                img = Image.open(img)
+                img.close()
+                break
+            except:
+                print("\33[1;31mERRORE\33[0m: immagine non trovata")
+                system("pause")   
     img_with_data_backup = Image.open(img_with_data_name_backup)
-        
+    
 # AREA DI BACKUP
 n_backup = 0
 div_backup = 0
