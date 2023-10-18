@@ -1313,7 +1313,7 @@ def recoverData(file: str) -> None:
                 break
             except:
                 print("\33[1;31mERRORE\33[0m: immagine non trovata")
-                system("pause")   
+                system("pause")
     img_with_data_backup = Image.open(img_with_data_name_backup)
     
 # AREA DI BACKUP
