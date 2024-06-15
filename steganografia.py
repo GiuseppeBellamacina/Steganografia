@@ -59,7 +59,7 @@ def setLastNBits(value: int, bits: str, n: int) -> int:
     value = min(255, max(0, value))
     return value
 
-def setComponetOfColor(mat: np.array, i: int, j: int, color: int, channel: int) -> np.array:
+def setComponentOfColor(mat: np.array, i: int, j: int, color: int, channel: int) -> np.array:
     """Cambia tutte e tre le componenti di colore RGB di un pixel"""
     if channel == 0:
         mat[i,j] = (color, mat[i,j][1], mat[i,j][2])
@@ -97,7 +97,7 @@ def hideMessage(img: Image, msg: str, new_img: str) -> Image:
                     bit = msg.pop(0)
                     color = mat[i,j][z] # ottieni il colore
                     color = setLastBit(color, bit) # cambia l'ultimo bit
-                    mat = setComponetOfColor(mat, i, j, color, z) # setta il colore
+                    mat = setComponentOfColor(mat, i, j, color, z) # setta il colore
                 else:
                     break
     print(f"\33[1;32mTERMINATO\33[0m\nPercentuale di pixel usati: {format(((len(msg) / ((img.width * img.height) * 3)) * 100), '.2f')}%")
@@ -132,7 +132,7 @@ def getMessage(img: Image) -> str:
     msg = binaryConvertBack(msg)
     return msg
 
-def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int): # deprecato
+def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int): # type: ignore # deprecato
     """Nasconde un file a caratteri"""
     system('cls')
     # controlla se n è valido
@@ -199,7 +199,7 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
                     break
                 color = mat[x,y][z]
                 color = setLastNBits(color, bit, n)
-                mat = setComponetOfColor(mat, x, y, color, z)
+                mat = setComponentOfColor(mat, x, y, color, z)
                 # vai avanti
                 for w in range(div):
                     z = (z + 1) % 3
@@ -226,7 +226,7 @@ def hideFile_with_mat(img: Image, file: str, new_img: str, n=0, div=0) -> (Image
                 bit += "0"
         color = mat[x,y][z]
         color = setLastNBits(color, bit, n)
-        mat = setComponetOfColor(mat, x, y, color, z)
+        mat = setComponentOfColor(mat, x, y, color, z)
         for w in range(div):
             z = (z + 1) % 3
             if z == 0:
@@ -1060,7 +1060,6 @@ def nInput(get=1) -> int:
             system("pause")
             system("cls")
             print("Inserisci il numero di bit da modificare nell'immagine che nasconde i dati")
-            print("NOTA: 0 per la modalita' automatica")
             n = input("\33[32mn\33[0m --> ")
     return int(n)
 
