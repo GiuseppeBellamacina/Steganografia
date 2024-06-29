@@ -257,7 +257,7 @@ def findDiv(dim: int, file: str, n: int) -> float: # più stabile
     div = ((image_dim - n) / (getsize(file) * 8))
     return div
 
-def hideFile(img: Image, file: str, new_img: str, n=0, div=0) -> (Image, int, float): # versione con array
+def hideFile(img: Image, file: str, new_img: str, n=0, div=0): # -> (Image, int, float) # versione con array
     """Nasconde un file a caratteri"""
     system('cls')
     if n < 0 or n > 8:
@@ -478,7 +478,7 @@ def getDirSize(path: str) -> int:
             size += getsize(file_path)
     return size
 
-def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0) -> (Image, int, float, int):
+def hideBinFile(img: Image, file: str, new_img: str, zipMode=NO_ZIP, n=0, div=0): # -> (Image, int, float, int)
     """Nasconde un file binario o una cartella"""
     system('cls')
     # check if n is in range
@@ -691,7 +691,7 @@ def getBinFile(img: Image, new_file_path: str, zipMode: int, n: int, div: float,
 
 # big lsb -> img1 big distorsion
 # small msb -> img2 low quality
-def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0) -> (Image, int, int, float, int, int): # put img2 in img1 and return info for decryption
+def hideImage(img1: Image, img2: Image, new_img: str, lsb=0, msb=8, div=0): # -> (Image, int, int, float, int, int) # put img2 in img1 and return info for decryption
     """Nasconde un'immagine in un'altra
         lsb: number of less significant bits of img1 to change
         msb: number of most significant bits of img2 to put in img1"""
@@ -1085,7 +1085,7 @@ def divInput(get=1) -> int:
             div = input("\33[35mdiv\33[0m --> ")
     return int(div)
 
-def LMInput(get=1) -> (int, int):
+def LMInput(get=1): # -> (int, int)
     system("cls") # msb
     print("Inserisci il valore \33[34mmsb\33[0m di bit piu' significativi da nascondere della seconda immagine")
     if not get: print("NOTA: 0 per la modalita' automatica")
@@ -1129,7 +1129,7 @@ def LMInput(get=1) -> (int, int):
             lsb = input("\33[36mlsb\33[0m --> ")
     return (int(lsb), int(msb))
 
-def WHInput() -> (int, int):
+def WHInput(): # -> (int, int)
     system("cls")
     print("Inserisci la larghezza dell'immagine da recuperare")
     w = input("Larghezza --> ")
